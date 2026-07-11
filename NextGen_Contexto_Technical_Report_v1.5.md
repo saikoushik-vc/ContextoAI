@@ -12,6 +12,7 @@
 *   **Server-Side Autonomous Solver (Anti-Cheat):** The bot solver logic operates entirely behind a secure, rate-limited Node.js API endpoint. This prevents users from inspecting the frontend bundle via developer tools to extract hints or spoil the daily puzzle.
 *   **Pluggable Word Universes:** The data architecture allows for dynamic database table swapping to host themed dictionaries (e.g., Medical Terminology, Tech Jargon) without altering backend logic.
 *   **Shareable Trajectory Grids:** Client-side generation of Unicode emoji blocks (🟩 🟨 🟥) representing the player's performance trajectory, optimized for social media sharing.
+*   **Curated Frequency Dataset:** Instead of using a raw, unfiltered English dictionary containing obscure archaic words, the AI pipeline processes a frequency-filtered dataset of the ~15,000 most commonly used English words. This ensures the semantic rankings remain highly relevant, logical, and playable for the end user.
 
 ## 3. System Architecture
 The system employs a strictly decoupled, two-tier architecture, optimizing both the AI mathematics and the live web server load.
