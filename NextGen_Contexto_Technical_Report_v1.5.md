@@ -16,8 +16,32 @@
 ## 3. System Architecture
 The system employs a strictly decoupled, two-tier architecture, optimizing both the AI mathematics and the live web server load.
 
-1.  **Offline AI Pipeline (Data Generation):** A localized Python script utilizes the upgraded, highly accurate `bge-small-en-v1.5` Transformer model. It computes the Cosine Similarity ($\text{similarity} = \cos(\theta) = \frac{\mathbf{A} \cdot \mathbf{B}}{\|\mathbf{A}\| \|\mathbf{B}\|}$) between target words and all dictionary entries, ranks them, and exports a static flat dataset.
+1.  **Offline AI Pipeline (Data Generation):** A localized Python script utilizes the upgraded, highly accurate `bge-small-en-v1.5` Transformer model. It computes the Cosine Similarity ($\text{similarity} = \cos(\theta) = \frac{\mathbf{A} \cdot \mathbf{B}}{\Vert{}\mathbf{A}\Vert{} \Vert{}\mathbf{B}\Vert{}}$) between target words and all dictionary entries, ranks them, and exports a static flat dataset.
 2.  **Live Production Application:** A modern Node.js backend acts as the data-delivery and security layer. It receives the guess, normalizes the text, and interfaces with a PostgreSQL database via Prisma ORM to fetch the pre-computed rank. Postgres serves as both the system of record and the hot-path lookup, minimizing deployment complexity.
+
+```mermaid
+graph LR
+    subgraph Local [Offline Environment - Your Laptop]
+        direction TB
+        DS[15k Word Dataset] --> PY[Python Data Engine]
+        AI[bge-small AI Model] --> PY
+        PY --> CSV[(Static CSV Answer Key)]
+    end
+
+    subgraph Cloud [Live Production Server]
+        direction TB
+        DB[(PostgreSQL Database)]
+        API[Node.js / Express API]
+        DB <--- |Indexed Search| API
+    end
+
+    subgraph Client [User Device]
+        UI[React / Vite Frontend]
+    end
+
+    CSV -.-> |Monthly Admin Upload| DB
+    UI <--> |JSON REST via HTTP| API
+```
 
 ## 4. Data Flow Diagram
 
