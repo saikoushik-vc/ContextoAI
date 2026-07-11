@@ -13,6 +13,7 @@ datasource db {
 model WordVector {
   id        Int      @id @default(autoincrement())
   word      String   @unique
-  vector    Float[]  // We will store the embedding here
+  vector    Float[]  
+  rank      Int?     // Add this line to store the pre-computed rank
   createdAt DateTime @default(now())
 }
