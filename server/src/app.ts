@@ -5,14 +5,25 @@ import gameRoutes from './routes/gameRoutes';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// Middleware
+// Explicitly allow your frontend origin (usually port 5173 for Vite)
+app.use(cors({
+  origin: 'http://localhost:5173', 
+  methods: ['GET', 'POST'],
+  credentials: true
+}));
+
 app.use(express.json());
 
-// Everything goes through /api/game/start or /api/game/guess
+// API Routes
 app.use('/api/game', gameRoutes);
 
-app.get('/health', (req, res) => res.json({ status: 'OK' }));
+// Health check
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', message: 'Contexto API is live' });
+});
 
-app.listen(Number(PORT), '0.0.0.0', () => {
+// Start the server
+app.listen(Number(PORT), () => {
   console.log(`Server live at http://localhost:${PORT}`);
 });

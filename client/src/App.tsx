@@ -1,38 +1,54 @@
 import { useState } from 'react';
 import axios from 'axios';
 
+const api = axios.create({ baseURL: 'http://localhost:3000/api/game' });
+
 function App() {
   const [guess, setGuess] = useState('');
-  const [feedback, setFeedback] = useState('');
+  const [history, setHistory] = useState<any[]>([]);
+  const [status, setStatus] = useState('Click "Start New Game" to begin.');
 
-  const handleGuess = async () => {
-    if (!guess.trim()) return;
-
+  const startGame = async () => {
     try {
-      const response = await axios.post('http://localhost:3000/api/validate', { word: guess });
-      setFeedback(`Great! "${response.data.word}" exists in our database.`);
-      setGuess(''); // Clear input
-    } catch (error: any) {
-      if (error.response?.status === 404) {
-        setFeedback("That word isn't in our list. Try another!");
-      } else {
-        setFeedback("Server error. Check your connection.");
-      }
+      await api.post('/start');
+      setHistory([]);
+      setStatus('Game started! Start guessing.');
+    } catch (e) {
+      setStatus('Error starting game.');
+    }
+  };
+
+  const handleGuess = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!guess.trim()) return;
+    try {
+      const { data } = await api.post('/guess', { word: guess });
+      setHistory(prev => [data, ...prev]);
+      setStatus(data.isWinner ? 'You won!' : `Rank: #${data.rank}`);
+      setGuess('');
+    } catch (e) {
+      alert('Word not found in dictionary!');
     }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', textAlign: 'center' }}>
+    <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'sans-serif' }}>
       <h1>Contexto AI</h1>
-      <input 
-        type="text"
-        value={guess}
-        onChange={(e) => setGuess(e.target.value)}
-        placeholder="Enter your guess..."
-        style={{ padding: '10px', width: '70%' }}
-      />
-      <button onClick={handleGuess} style={{ padding: '10px' }}>Submit</button>
-      <p style={{ marginTop: '20px', fontWeight: 'bold' }}>{feedback}</p>
+      <p><strong>{status}</strong></p>
+      <button onClick={startGame} style={{ padding: '10px 20px' }}>Start New Game</button>
+
+      <form onSubmit={handleGuess} style={{ margin: '20px 0' }}>
+        <input value={guess} onChange={(e) => setGuess(e.target.value)} placeholder="Enter a word" />
+        <button type="submit">Guess</button>
+      </form>
+
+      <div style={{ maxWidth: '300px', margin: '0 auto', textAlign: 'left' }}>
+        {history.map((h, i) => (
+          <div key={i} style={{ padding: '5px', borderBottom: '1px solid #ccc' }}>
+            {h.word.toUpperCase()} — Rank: <strong>#{h.rank}</strong>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
